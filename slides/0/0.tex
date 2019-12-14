@@ -1,0 +1,76 @@
+\documentclass{beamer}
+\usepackage{amsmath}
+\usepackage[italian]{babel}
+\usepackage{commath}
+\usepackage[autostyle, english = american]{csquotes}
+\usepackage{parskip}
+\usepackage{subcaption}
+\usetheme{Boadilla}
+\begin{document}
+\title{Esercitazione 0}
+\subtitle{Lettura e scrittura di file in C e Java}
+\author{Corradini, di Nuzzo, Frick, Ragazzini}
+\institute{unibo}
+\date{2019}
+\setbeamercovered{transparent}
+\begin{frame}
+	\titlepage
+\end{frame}
+\begin{frame}
+\frametitle{Codice C e Java: produttore}
+Il produttore è il processo che crea il file e, dopo aver letto \textit{carattere per carattere} il contenuto inserito dall'utente fino alla ricezione di \texttt{EOF}, lo scrive sul file di testo.
+
+\textbf{Logica di soluzione}
+\begin{itemize}
+\item Controllo input;
+\item Apertura/creazione del file in scrittura;
+\item Ciclo di lettura da standard input:
+\begin{itemize}
+\item inserimento in un buffer temporaneo del singolo carattere letto;
+\item scrittura su file del contenuto del buffer;
+\end{itemize}
+\item Chiusura del file.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Codice C: consumatore}
+Il consumatore è il processo che legge un file carattere per carattere, filtrandone il contenuto in base a una lista di caratteri passati come parametro.
+
+\textbf{Logica di soluzione}
+\begin{itemize}
+\item Controllo input;
+\item Inizializzazione file descriptor:
+\begin{itemize}
+\item standard input,
+\item apertura file;
+\end{itemize}
+\item Lettura a carattere:
+\begin{itemize}
+\item se non presente nella stringa di filtro, stampa il carattere;
+\end{itemize}
+\item Chiusura file.
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Codice Java: consumatore}
+Il consumatore è il processo che legge un file carattere per carattere, filtrandone il contenuto in base a una lista di caratteri passati come parametro.
+
+
+\textbf{Logica di soluzione}
+\begin{itemize}
+\item Controllo input;
+\item Creazione istanza Reader:
+\begin{itemize}
+\item standard input (InputStreamReader),
+\item apertura file (FileReader);
+\end{itemize}
+\item Lettura a carattere (da BufferedReader):
+\begin{itemize}
+\item se non contenuto nella stringa di filtro, stampa il carattere;
+\end{itemize}
+\item Chiusura Reader.
+
+\end{itemize}
+\end{frame}
+\end{document}

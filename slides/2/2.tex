@@ -1,0 +1,61 @@
+\documentclass{beamer}
+\usepackage{amsmath}
+\usepackage[italian]{babel}
+\usepackage{commath}
+\usepackage[autostyle, english = american]{csquotes}
+\usepackage{graphicx}
+\usepackage{parskip}
+\usepackage{subcaption}
+\usepackage{minted}
+\usetheme{Boadilla}
+\begin{document}
+\title{Esercitazione 2}
+\subtitle{Invio di direttori in Java}
+\author{Corradini, De Luca, di Nuzzo, Frick, Ragazzini}
+\institute{unibo}
+\date{2019}
+\setbeamercovered{transparent}
+\begin{frame}
+\titlepage
+\end{frame}
+\begin{frame}[fragile]{Introduzione}
+\textbf{Obiettivo:} Sviluppo di un'applicazione cliente/servitore che si occupi di copiare i file da uno o più direttori selezionati dall'utente all'interno del file system del server, purché la loro dimensione sia maggiore di una data soglia.
+
+\textbf{Struttura:} Un \texttt{FatherServer} lancia un \texttt{ChildServer}, estensione di \texttt{Thread}, per ogni richiesta di connessione; questi ricevono i metadati e i contenuti dei file dal \texttt{Client} tramite socket Java conformi al protocollo TCP.
+\end{frame}
+\begin{frame}[fragile]{Client}
+Funzione: trasferimento di file al servitore.
+
+\textbf{Protocollo di trasferimento:}
+
+Per ogni file nella directory (\textit{range-based for loop}):
+\begin{itemize} 
+\item Invio nome (\texttt{writeUTF()}) del file;
+\item Ricezione risposta (file già presente?);
+\item Invio dimensione (\texttt{writeLong()}) del file;
+\item Invio del file.
+\end{itemize}
+Viene chiamato \texttt{flush()} solo dopo aver scritto l'intero file sullo stream, per poter inviare un file intero.
+\end{frame}
+
+\begin{frame}[fragile]{FatherServer}
+Funzione: demone in grado di creare processi concorrenti che gestiscano l'elaborazione delle richieste.
+
+Il FatherServer crea i thread e assegna ad ognuno di loro una socket TCP. 
+\end{frame}
+
+\begin{frame}[fragile]{ChildServer}
+Il \texttt{ChildServer} riceve dalla socket il nome del file e controlla che esso non sia già presente nel proprio file system. Nel caso non lo sia riceve anche la dimensione e i contenuti del file.
+
+Indicazione di fine direttorio: \texttt{readUTF()} lancia \texttt{EOFException} quando sono finiti i file da inviare.
+\end{frame}
+
+\begin{frame}{Conclusioni}
+Difficoltà riscontrate:
+\begin{itemize}
+\item Garantire la sincronia tra cliente e servitore;
+\item Trasferimento di file non testuali;
+\item Indicazione di fine trasferimento direttorio.
+\end{itemize}
+\end{frame}
+\end{document}

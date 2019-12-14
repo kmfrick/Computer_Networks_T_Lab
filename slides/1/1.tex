@@ -1,0 +1,155 @@
+\documentclass[8pt]{beamer}
+\usepackage{amsmath}
+\usepackage[italian]{babel}
+\usepackage{commath}
+\usepackage[autostyle, english = american]{csquotes}
+\usepackage{parskip}
+\usepackage{subcaption}
+\usepackage{minted}
+\usetheme{Boadilla}
+\begin{document}
+\title{Esercitazione 1}
+\subtitle{Scambio di righe in Java}
+\author{Corradini, di Nuzzo, Frick, Ragazzini}
+\institute{unibo}
+\date{2019}
+\setbeamercovered{transparent}
+\begin{frame}
+\titlepage
+\end{frame}
+\begin{frame}[fragile]{RowSwapServer - 1}
+\vspace{0.9em}
+\begin{itemize}
+\linespread{1.2}
+\item Il \texttt{RowSwapServer} implementa la logica di soluzione vera e propria.
+Vi è un \texttt{RowSwapServer} per ogni file da modificare.
+\item Nel costruttore viene aperta la socket con la quale comunicherà con il \texttt{DiscoveryServer} e gli vengono indicati il nome del file su cui deve operare e la porta sulla quale aprire la socket. 
+\item Il \texttt{RowSwapServer} estende \texttt{Thread} e implementa la logica di soluzione nel metodo \texttt{run()}.
+\vspace{1.5em}
+\end{itemize}
+\begin{minted}{java}
+public RowSwapServer(String filename, int port) throws SocketException, FileNotFoundException {
+  socket = new DatagramSocket(port);
+  packet = new DatagramPacket(buf, SIZE);
+  socket.setSoTimeout(30000);
+  filename = filename;
+  port = port;
+  Random r = new Random(System.currentTimeMillis());
+  outfile = filename + ".out" + r.nextInt(256);
+  success = 0;
+  System.out.println("RSS: Ricevuto " + filename + " " + port);
+  File file = new File(filename);
+  if (!file.exists() || file.length() == 0)
+    throw new FileNotFoundException();
+}
+\end{minted}
+\end{frame}
+\begin{frame}[fragile]{RowSwapServer - 2}
+\begin{itemize}
+\item Per scambiare le righe il file viene prima letto fino alla seconda riga coinvolta, salvando in memoria i contenuti delle due righe (omessa la parte di codice per la gestione delle eccezioni, per leggibilità).
+\end{itemize}
+\small
+\begin{minted}{java}
+while (i < b) {
+  line = reader.readLine();
+  if (line == null) throw new IOException();
+  else if (i == a) firstLine = line;
+  i++;
+}
+if (a != b) secondLine = reader.readLine();
+else secondLine = firstLine;
+\end{minted}
+\normalsize
+\begin{itemize}
+\item Il file viene poi scorso di nuovo e stampato riga per riga, avendo cura di intercettare le righe in esame e scambiarle. 
+\end{itemize}
+\small
+\begin{minted}{java}
+while ((line = reader.readLine()) != null) {
+  if (i == a) {
+    System.out.println(secondLine);
+    writer.write(secondLine);
+  } else if (i == b) {
+    System.out.println(firstLine);
+    writer.write(firstLine);
+  } else {
+    System.out.println(line);
+    writer.write(line);
+  }
+  writer.newLine(); // Portabilità, invece di \n
+  i++;
+}
+\end{minted}
+\normalsize
+\vspace{0.6em}
+Per poter ricominciare la lettura del file dall'inizio viene utilizzato un \texttt{FileInputStream} invece di costruire il \texttt{BufferedReader} leggendo direttamente il file.
+\end{frame}
+\begin{frame}[fragile]{DiscoveryServer - 1}
+\begin{itemize}
+\item Il \texttt{DiscoveryServer} lancia i \texttt{RowSwapServer} corrispondenti a ogni file come \texttt{Thread} separati.
+\end{itemize}
+\begin{minted}{java}
+i = 1;
+while (i < args.length) {
+  port = Integer.parseInt(args[i + 1]);
+  RowSwapServer rowSwapServer = new RowSwapServer(args[i], port);
+  rowSwapServer.start();
+  i += 2;
+}
+\end{minted}
+\begin{itemize}
+\item Gli argomenti, nella forma di coppie \texttt{"nomefile porta"} vengono elaborati due alla volta: l'indice del ciclo, di conseguenza, assume solo valori dispari.
+\end{itemize}
+\begin{minted}{java}
+i = 1;
+port = -1;
+while (i < args.length) {
+  if (args[i].equals(nomefile))
+    port = Integer.parseInt(args[i + 1]);
+  i += 2;
+}
+\end{minted}
+\end{frame}
+\begin{frame}[fragile]{DiscoveryServer - 2}
+\begin{itemize}
+\item In seguito a una richiesta, se essa corrisponde a un \texttt{RowSwapServer} valido, il \texttt{DiscoveryServer} risponde con la porta del server in esame.
+\end{itemize}
+\begin{minted}{java}
+ByteArrayOutputStream boStream = new ByteArrayOutputStream();
+DataOutputStream doStream = new DataOutputStream(boStream);
+
+doStream.writeUTF(Integer.toString(port));
+clientComunicationBuffer = boStream.toByteArray();
+clientPacket.setData(clientComunicationBuffer);
+clientSocket.send(clientPacket);
+
+clientSocket.disconnect();
+clientSocket.close();
+
+\end{minted}
+\end{frame}
+\begin{frame}[fragile]{Client}
+\begin{itemize}
+\item Il \texttt{Client} chiede al \texttt{DiscoveryServer} di essere messo in comunicazione con un \texttt{RowSwapServer}.
+\item Al \texttt{RowSwapServer}, invece, chiede di scambiare due righe di un file.
+\item Attraverso la socket condivisa con il \texttt{DiscoveryServer} viene inviato il numero della porta da utilizzare per la comunicazione con il \texttt{RowSwapServer}.
+\end{itemize}
+\vspace{1em}
+\begin{minted}{java}
+// Chiede la porta a DS
+packet.setData(data);
+socket.send(packet);
+packet.setData(buf);
+socket.receive(packet);
+ByteArrayInputStream biStream = 
+new ByteArrayInputStream(packet.getData(), 0, packet.getLength());
+DataInputStream diStream = new DataInputStream(biStream);
+int portRS = Integer.parseInt(diStream.readUTF());
+// Il discovery server lancia un valore negativo se non trova il file
+if (portRS < 0) { 
+  System.err.println("File non trovato.");
+  System.exit(3);
+}
+\end{minted}
+\end{frame}
+\end{document}

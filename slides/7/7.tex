@@ -1,0 +1,43 @@
+\documentclass{beamer}
+\usepackage[italian]{babel}
+\usepackage[autostyle, english = american]{csquotes}
+\usepackage{graphicx}
+\usepackage{parskip}
+\usepackage{subcaption}
+\usetheme{Boadilla}
+\graphicspath{ {./} }
+\begin{document}
+\title{Esercitazione 7}
+\subtitle{RMI Registry Remoto come pagine gialle}
+\author{Corradini, De Luca, di Nuzzo, Frick, Ragazzini}
+\institute{unibo}
+\date{2019}
+\setbeamercovered{transparent}
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Registry Remoto}
+Il registry remoto fa da servizio di nomi per il cliente: esso ha la possibilità di richiedere tramite opportune funzioni la lista dei nomi dei servizi corrispondenti a un dato tag.
+Con il nome del servizio il cliente può ottenere il riferimento remoto.
+Il servitore ha la possibilità di potersi registrare e associare il proprio tag.
+\end{frame}
+
+\begin{frame}{Cliente}
+Il cliente interroga il registry remoto per ottenere tutti i servitori corrispondenti a un tag richiesto da stdin all'utente.
+Dopo daver ottenuto l'elenco dei servitore richiede all'utente di sceglierne uno e si connette per la gestione del programma congresso.
+\end{frame}
+
+\begin{frame}{Servitore}
+I servitori dovranno connettersi e registrarsi tramite la funzione remota fornita col Registry remoto.
+Dopo essersi connessi impostano il proprio tag ed entrano in attesa di richiesta di registrazione e stampa da parte del cliente.
+\end{frame}
+
+\begin{frame}{Conclusioni}
+
+Si sarebbe potuto utilizzare una "lista di liste" strutturata dividendo la prima lista in tag dove ogni elemento della stessa contiene i riferimenti remoti di tutti i servitori con quel tag.
+Tuttavia si è scelto di usare una matrice statica per soddisfare la richiesta di utilizzare costrutti semplici.
+
+\end{frame}
+
+\end{document}
